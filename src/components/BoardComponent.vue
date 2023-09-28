@@ -190,7 +190,7 @@ export default {
       if (pieces.length >= 4) {
         for (let i = 0; i < this.numRows; i++) {
           let validHorizontal = this.verifyHorizontal(i);
-          let validVertical;
+          let validVertical=false;
           for (let j = 0; j < this.numCols; j++) {
             validVertical = this.verifyVertical(j);
             console.log(validVertical, "validVertical");
