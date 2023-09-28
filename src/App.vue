@@ -9,13 +9,13 @@
       />
     </div>
 
-    <board-component />
+    <board-component :player-turn="playerTurn" :players="players"/>
     <div class="players-right">
       <player-card  
       class="player" 
       v-for="(item,index) in (players.playersInfo.length/2)" 
       :key="`player-${index}`"
-      :player-info="players.playersInfo[(index+2)]"
+      :player-info="players.playersInfo[(index+1)]"
       />
     </div>
 
@@ -33,31 +33,36 @@ export default {
   },
   data(){
     return{
+      playerTurn: 0,
       players:{
-        count:4,
+        count:2,
         playersInfo:[
           {
             name: "PLAYER 1",
             score: 0,
             color: "#FD6687",
+            hisTurn: true,
+            pieces:[
+              
+            ]
           },
           {
             name: "PLAYER 2",
             score: 0,
             color: "#52BE80",
+            hisTurn: false,
+            pieces:[
+              
+              ]
           },
-          {
-            name: "PLAYER 3",
-            score: 0,
-            color: "#F4D03F",
-          },
-          {
-            name: "PLAYER 4",
-            score: 0,
-            color: "#2E86C1",
-          },
+         
         ]
       }
+    }
+  },
+  methods:{
+    init(){
+      
     }
   }
 }

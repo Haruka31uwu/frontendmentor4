@@ -123,26 +123,26 @@ export default {
 
       let columnBoard = this.board[lastRow][col];
 
-      if (row >= 0) 
-      if (columnBoard === 0) {
-        this.board[lastRow][col] = 1;
-        this.animatePutPiece(lastRow, col);
-        this.addPieceToPlayer(lastRow, col);
-      } else {
-        while (columnBoard !== 0) {
-          lastRow--;
-          columnBoard = this.board[lastRow][col];
-          if (columnBoard === 0) {
-            if (lastRow < row) {
-              return;
+      if (row >= 0)
+        if (columnBoard === 0) {
+          this.board[lastRow][col] = 1;
+          this.animatePutPiece(lastRow, col);
+          this.addPieceToPlayer(lastRow, col);
+        } else {
+          while (columnBoard !== 0) {
+            lastRow--;
+            columnBoard = this.board[lastRow][col];
+            if (columnBoard === 0) {
+              if (lastRow < row) {
+                return;
+              }
+              this.board[lastRow][col] = 1;
+              this.animatePutPiece(lastRow, col);
+              this.addPieceToPlayer(lastRow, col);
+              break;
             }
-            this.board[lastRow][col] = 1;
-            this.animatePutPiece(lastRow, col);
-            this.addPieceToPlayer(lastRow, col);
-            break;
           }
         }
-      }
 
       this.verifyWinner();
       this.changeTurn();
@@ -184,47 +184,59 @@ export default {
       }, 100);
     },
     verifyWinner() {
-      let winner = false;
+      // let winner = false;
       const player = this.getPlayerTurnInfo;
       const pieces = player.pieces;
       if (pieces.length >= 4) {
-        for (let i = 0; i < pieces.length; i++) {
-          const piece = pieces[i];
-          const row = piece.row;
-          const col = piece.col;
-          const horizontal = this.verifyHorizontal(row);
-          const vertical = this.verifyVertical(col);
-          const diagonal = this.verifyDiagonal(row, col);
-          if (horizontal || vertical || diagonal) {
-            winner = true;
-            break;
+        for (let i = 0; i < this.numRows; i++) {
+          let validHorizontal = this.verifyHorizontal(i);
+          let validVertical;
+          for (let j = 0; j < this.numCols; j++) {
+            validVertical = this.verifyVertical(j);
+            console.log(validVertical, "validVertical");
+            // let validDiagonal = this.verifyDiagonal(i, j);
+            // if (validDiagonal) {
+            //   alert("Ganaste diagonal", player.name);
+            // }
+            if (validVertical) {
+              alert("Ganaste vertical", player.name);
+              return;
+            }
+          }
+          if (validHorizontal) {
+            alert("Ganaste horizontal", player.name);
+            return;
           }
         }
-        console.log(winner);
       }
     },
     verifyHorizontal(row) {
-      console.log(row,'horizontal')
-
       const player = this.getPlayerTurnInfo;
-      const pieces = player.pieces;
-      //verify if the piece is in the same row and consecutive
-      console.log(pieces)
-      
-
+      //create a new array with pieces with same row
+      const piecesRow = player.pieces.filter((piece) => piece.row === row);
+      piecesRow.sort((a, b) => a.col - b.col);
+      if (piecesRow.length >= 4) {
+        for (let i = 1; i < piecesRow.length; i++) {
+          if (piecesRow[i].col != piecesRow[i - 1].col + 1) {
+            return false;
+          }
+        }
+        return true;
+      }
       return false;
     },
     verifyVertical(col) {
-      let count = 0;
       const player = this.getPlayerTurnInfo;
-      const pieces = player.pieces;
-      for (let i = 0; i < pieces.length; i++) {
-        const piece = pieces[i];
-        if (piece.col === col) {
-          count++;
+      //create a new array with pieces with same col
+      const piecesCol = player.pieces.filter((piece) => piece.col === col);
+      piecesCol.sort((a, b) => a.row - b.row);
+      console.log(piecesCol, piecesCol.length, col, "piecesCol");
+      if (piecesCol.length >= 4) {
+        for (let i = 1; i < piecesCol.length; i++) {
+          if (piecesCol[i].row != piecesCol[i - 1].row + 1) {
+            return false;
+          }
         }
-      }
-      if (count >= 4) {
         return true;
       }
       return false;
