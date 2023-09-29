@@ -1,5 +1,6 @@
 <template>
   <div class="game-area">
+    <board-options class="board-options"/>
     <div class="main-component">
       <div class="main-board">
         <div
@@ -32,24 +33,34 @@
       </div>
     </div>
     <player-time-info
+      v-if="winner == false"
       ref="player-turn-info"
       :player-info="getPlayerTurnInfo"
       class="player-turn-info"
       @turnEnded="changeTurn()"
+    />
+    <player-win
+      v-if="winner != false"
+      :player-info="winnerInfo"
+      class="player-win"
     />
   </div>
 </template>
 
 <script>
 import PlayerTimeInfo from "./PlayerTimeInfo.vue";
+import PlayerWin from "./PlayerWin.vue";
+import BoardOptions from "./BoardOptions.vue";
 export default {
   components: {
     PlayerTimeInfo,
+    PlayerWin,
+    BoardOptions,
   },
   props: {
     numRows: {
       type: Number,
-      default: 8,
+      default: 7,
     },
     numCols: {
       type: Number,
@@ -73,6 +84,10 @@ export default {
     },
   },
   computed: {
+    /**
+     * Get the player turn info
+     * @returns {Object} player turn info
+     */
     getPlayerTurnInfo() {
       return this.players.playersInfo[this.playerT];
     },
@@ -89,9 +104,15 @@ export default {
         () => Array(this.numCols).fill(0)
       ),
       playerT: this.playerTurn,
+      winner: false,
+      winnerInfo: {},
     };
   },
   methods: {
+    /**
+     * Create the board
+     * @returns {void}
+     */
     createBoard() {
       const board = document.querySelector(".main-board");
       const backgroundBoard = document.querySelector(".background-board");
@@ -118,6 +139,12 @@ export default {
         }px`;
       });
     },
+    /**
+     * Put a piece in the board
+     * @param {number} row row
+     * @param {number} col column
+     * @returns {void}
+     */
     putPiece(row, col) {
       let lastRow = this.numRows - 1;
 
@@ -144,17 +171,35 @@ export default {
           }
         }
 
-      this.verifyWinner();
+      const winner = this.verifyWinner();
+      console.log(winner, "winner");
+      if (winner != false) {
+        this.winner = true;
+        this.winnerInfo = winner;
+        this.$refs["player-turn-info"].stopTimer();
+        return;
+      }
       this.changeTurn();
     },
+    /**
+     * Change the player turn
+     * @returns {void}
+     */
     changeTurn() {
       if (this.playerT === this.players.count - 1) {
         this.playerT = 0;
       } else {
         this.playerT++;
       }
+      console.log(this.playerT, "playerT");
       this.$refs["player-turn-info"].startTimer();
     },
+    /**
+     * Add a piece to the player
+     * @param {number} row row
+     * @param {number} col column
+     * @returns {void}
+     */
     addPieceToPlayer(row, col) {
       const player = this.getPlayerTurnInfo;
       player.pieces.push({
@@ -162,6 +207,12 @@ export default {
         col,
       });
     },
+    /**
+     * Animate the piece
+     * @param {number} row row
+     * @param {number} col column
+     * @returns {void}
+     */
     animatePutPiece(row, col) {
       const containerPiece = document.getElementById(`item-${row}-${col}`);
       const ficha = document.createElement("div");
@@ -183,6 +234,9 @@ export default {
         ficha.style.left = containerPiece.offsetLeft + "px";
       }, 100);
     },
+    /**
+     * Verify if the player win
+     */
     verifyWinner() {
       // let winner = false;
       const player = this.getPlayerTurnInfo;
@@ -190,26 +244,33 @@ export default {
       if (pieces.length >= 4) {
         for (let i = 0; i < this.numRows; i++) {
           let validHorizontal = this.verifyHorizontal(i);
-          let validVertical=false;
+          let validVertical = false;
+          let validDiagonal = false;
           for (let j = 0; j < this.numCols; j++) {
             validVertical = this.verifyVertical(j);
-            console.log(validVertical, "validVertical");
+            validDiagonal = this.verifyDiagonal(i, j);
             // let validDiagonal = this.verifyDiagonal(i, j);
             // if (validDiagonal) {
             //   alert("Ganaste diagonal", player.name);
             // }
             if (validVertical) {
-              alert("Ganaste vertical", player.name);
-              return;
+              return player;
+            }
+            if (validDiagonal) {
+              return player;
             }
           }
           if (validHorizontal) {
-            alert("Ganaste horizontal", player.name);
-            return;
+            return player;
           }
         }
+        return false;
       }
+      return false;
     },
+    /**
+     * Verify if the player win in horizontal
+     */
     verifyHorizontal(row) {
       const player = this.getPlayerTurnInfo;
       //create a new array with pieces with same row
@@ -225,6 +286,9 @@ export default {
       }
       return false;
     },
+    /**
+     * Verify if the player win in vertical
+     */
     verifyVertical(col) {
       const player = this.getPlayerTurnInfo;
       //create a new array with pieces with same col
@@ -241,20 +305,43 @@ export default {
       }
       return false;
     },
+    /**
+     * Verify if the player win in diagonal
+     */
     verifyDiagonal(row, col) {
-      let count = 0;
       const player = this.getPlayerTurnInfo;
-      const pieces = player.pieces;
-      for (let i = 0; i < pieces.length; i++) {
-        const piece = pieces[i];
-        if (piece.col === col) {
-          count++;
+      // Crea un nuevo array con piezas en la misma diagonal
+      const piecesDiagonal = player.pieces.filter((piece) => {
+        // Calcula la diferencia entre la fila y la columna de la pieza actual
+        const rowDiff = piece.row - row;
+        const colDiff = piece.col - col;
+        // Verifica si la pieza está en la misma diagonal
+        return Math.abs(rowDiff) === Math.abs(colDiff);
+      });
+
+      // Ordena las piezas por fila y columna
+      piecesDiagonal.sort((a, b) => {
+        if (a.row !== b.row) {
+          return a.row - b.row;
         }
+        return a.col - b.col;
+      });
+
+      if (piecesDiagonal.length >= 4) {
+        for (let i = 1; i < piecesDiagonal.length; i++) {
+          // Verifica si las piezas consecutivas están en diagonal
+          const prevPiece = piecesDiagonal[i - 1];
+          const currentPiece = piecesDiagonal[i];
+          const rowDiff = currentPiece.row - prevPiece.row;
+          const colDiff = currentPiece.col - prevPiece.col;
+
+          if (Math.abs(rowDiff) !== 1 || Math.abs(colDiff) !== 1) {
+            return false; // No hay cuatro piezas consecutivas en diagonal
+          }
+        }
+        return true; // Se encontraron cuatro piezas consecutivas en diagonal
       }
-      if (count >= 4) {
-        return true;
-      }
-      return false;
+      return false; // No hay suficientes piezas en la diagonal para ganar
     },
   },
 };
@@ -262,6 +349,9 @@ export default {
 
 <style scoped>
 .player-turn-info {
+  transform: translateY(-30%);
+}
+.player-win {
   transform: translateY(-30%);
 }
 .main-component {
@@ -281,9 +371,12 @@ export default {
   border: 0.3em solid black;
   position: relative;
 }
-
+.board-options{
+  width: 100%;
+  margin:2em auto
+}
 .board-element {
-  background: #5c2dd5;
+  background: #7945FF;
   border-radius: 50%;
   margin: 5px;
   display: inline-block;
@@ -318,5 +411,6 @@ export default {
   /* Esto recorta un arco en la parte superior */
   border-radius: 50%;
   margin: 5px;
+  cursor: pointer;
 }
 </style>

@@ -29,7 +29,8 @@ export default {
   name: 'App',
   components: {
     BoardComponent,
-    PlayerCard
+    PlayerCard,
+
   },
   data(){
     return{
@@ -78,7 +79,7 @@ export default {
   height: auto;
   min-height: 100vh;
   width:100vw;
-  background: #5C2DD5 ;
+  background: #7945FF ;
   display: flex;
   align-items: center;
   justify-content: center;

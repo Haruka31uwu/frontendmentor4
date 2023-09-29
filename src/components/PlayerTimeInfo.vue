@@ -80,6 +80,7 @@ export default {
   data() {
     return {
       initialTime: 5,
+      timer: null,
     };
   },
   mounted() {
@@ -87,18 +88,28 @@ export default {
   },
   methods: {
     startTimer() {
-      this.initialTime = 5;
-      if (this.timer) {
-        clearInterval(this.timer);
-      }
-      this.timer = setInterval(() => {
-        if (this.initialTime > 0) {
+      try {
+        this.initialTime = 5;
+        console.log("startTimer",this.timer);
+        if(this.timer!==null) clearInterval(this.timer);
+        this.timer = setInterval(() => {
           this.initialTime--;
-        } else {
-          this.$emit("turnEnded");
-          clearInterval(this.timer);
-        }
-      }, 1000);
+          if (this.initialTime === 0) {
+            this.$emit("turnEnded");
+            clearInterval(this.timer);
+            this.startTimer();
+          }
+        }, 1000);
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    stopTimer() {
+      clearInterval(this.timer);
+    },
+    resetTimer() {
+      this.stopTimer();
+      this.startTimer();
     },
   },
 };
@@ -107,15 +118,15 @@ export default {
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap");
 .player-info-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  display: flex!important;
+  flex-direction: column!important;
+  align-items: center!important;
+  justify-content: center!important;
+  position: relative !important;
 }
 .player-info {
   position: absolute;
-  margin-top: em;
+  margin-top: 1em;
   display: flex;
   flex-direction: column;
 }
