@@ -1,6 +1,6 @@
 <template>
   <div class="game-area">
-    <board-options class="board-options"/>
+    <board-options class="board-options" @pauseGame="()=>pauseGame()"/>
     <div class="main-component">
       <div class="main-board">
         <div
@@ -51,6 +51,7 @@
 import PlayerTimeInfo from "./PlayerTimeInfo.vue";
 import PlayerWin from "./PlayerWin.vue";
 import BoardOptions from "./BoardOptions.vue";
+
 export default {
   components: {
     PlayerTimeInfo,
@@ -191,8 +192,8 @@ export default {
       } else {
         this.playerT++;
       }
-      console.log(this.playerT, "playerT");
-      this.$refs["player-turn-info"].startTimer();
+
+      this.$refs["player-turn-info"].startTimer(true);
     },
     /**
      * Add a piece to the player
@@ -342,6 +343,18 @@ export default {
         return true; // Se encontraron cuatro piezas consecutivas en diagonal
       }
       return false; // No hay suficientes piezas en la diagonal para ganar
+    },
+    pauseGame() {
+      this.$refs["player-turn-info"].stopTimer();
+      this.$emit("pauseGame");
+    },
+    continueGame() {
+      this.$refs["player-turn-info"].continueTimer();
+    },
+    restartGame() {
+      this.$refs["player-turn-info"].resetTimer();
+      this.$emit("restartGame");
+      
     },
   },
 };

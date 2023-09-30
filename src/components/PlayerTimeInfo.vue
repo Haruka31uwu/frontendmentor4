@@ -81,23 +81,32 @@ export default {
     return {
       initialTime: 5,
       timer: null,
+      pauseTimer:5,
     };
   },
   mounted() {
-    this.startTimer();
+    this.startTimer(false);
   },
   methods: {
-    startTimer() {
+    startTimer(playerTurn) {
       try {
-        this.initialTime = 5;
-        console.log("startTimer",this.timer);
-        if(this.timer!==null) clearInterval(this.timer);
+        if(playerTurn){
+          console.log("playerTurn",playerTurn)
+          this.initialTime = 5
+        }
+        if (this.timer) {
+          clearInterval(this.timer);
+        }
         this.timer = setInterval(() => {
           this.initialTime--;
+          this.pauseTimer = this.initialTime;
+
           if (this.initialTime === 0) {
+            this.pauseTimer = 5;
+            this.initialTime = 5;
             this.$emit("turnEnded");
             clearInterval(this.timer);
-            this.startTimer();
+            this.startTimer(false);
           }
         }, 1000);
       } catch (e) {
@@ -109,7 +118,11 @@ export default {
     },
     resetTimer() {
       this.stopTimer();
-      this.startTimer();
+      this.startTimer(false);
+    },
+    //continue time from where it was left
+    continueTimer() {
+      this.startTimer(false);
     },
   },
 };

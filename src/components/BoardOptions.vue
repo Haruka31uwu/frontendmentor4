@@ -1,6 +1,6 @@
 <template>
   <div class="board-options">
-    <div class="option-button">MENU</div>
+    <div class="option-button" @click="pauseGame()">MENU</div>
     <svg
       width="58"
       height="61"
@@ -165,7 +165,13 @@
   </div>
 </template>
 <script>
-export default {};
+export default {
+  methods: {
+    pauseGame() {
+      this.$emit("pauseGame");
+    },
+  },
+};
 </script>
 <style scoped>
 .board-options{
